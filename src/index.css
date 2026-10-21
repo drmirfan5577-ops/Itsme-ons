@@ -17,6 +17,19 @@
     overflow: hidden;
   }
 
+  /* Use the dynamic viewport height so mobile browser toolbars don't cut off the app */
+  @supports (height: 100dvh) {
+    html,
+    body,
+    #root {
+      height: 100dvh;
+    }
+  }
+
+  body {
+    overscroll-behavior: none;
+  }
+
   body {
     font-family: 'Inter', sans-serif;
     background-color: #111b21;

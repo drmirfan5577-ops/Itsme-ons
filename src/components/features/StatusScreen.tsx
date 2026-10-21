@@ -12,12 +12,19 @@ function StatusViewer({ item, onClose }: { item: StatusItem; onClose: () => void
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 100) { onClose(); return 100; }
-        return p + 2;
-      });
+      setProgress((p) => Math.min(p + 2, 100));
     }, 100);
     return () => clearInterval(interval);
+  }, [item.id]);
+
+  useEffect(() => {
+    if (progress >= 100) onClose();
+  }, [progress, onClose]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
   return (
@@ -41,9 +48,9 @@ function StatusViewer({ item, onClose }: { item: StatusItem; onClose: () => void
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 min-h-0 flex items-center justify-center">
         {item.type === 'image' && item.imageUrl ? (
-          <img src={item.imageUrl} alt="status" className="w-full h-full object-cover" />
+          <img src={item.imageUrl} alt="status" className="w-full h-full object-contain" />
         ) : (
           <div className="w-full h-full flex items-center justify-center p-12" style={{ backgroundColor: item.bgColor || '#00a884' }}>
             <p className="text-white text-2xl text-center font-medium leading-relaxed">{item.text}</p>
@@ -137,7 +144,7 @@ function StatusRow({ item, onView, seen }: { item: StatusItem; onView: (i: Statu
       </div>
       <div className="w-10 h-10 rounded-lg overflow-hidden bg-bg flex-shrink-0">
         {item.type === 'image' && item.imageUrl ? (
-          <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+          <img src={item.imageUrl} alt="" loading="lazy" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: item.bgColor }}>
             <span className="text-lg">✨</span>

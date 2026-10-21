@@ -54,6 +54,7 @@ export default function ChatView({ chat, messages, onBack, onSend, onCall, isMob
     if (!text) return;
     onSend(text, 'text');
     setInput('');
+    if (inputRef.current) inputRef.current.style.height = 'auto';
     setReplyTo(null);
     setShowEmoji(false);
   };
@@ -136,6 +137,10 @@ export default function ChatView({ chat, messages, onBack, onSend, onCall, isMob
           </div>
         </div>
 
+        {visibleMessages.length === 0 && searchQuery && (
+          <p className="text-center text-xs text-text-muted py-4">No messages found</p>
+        )}
+
         {visibleMessages.map((msg) => (
           <div
             key={msg.id}
@@ -144,7 +149,7 @@ export default function ChatView({ chat, messages, onBack, onSend, onCall, isMob
           >
             <div
               className={cn(
-                'max-w-[65%] rounded-lg px-3 py-2 relative group cursor-pointer',
+                'max-w-[85%] md:max-w-[65%] rounded-lg px-3 py-2 relative group cursor-pointer',
                 msg.sent ? 'bg-bubble-sent rounded-tr-none' : 'bg-bubble-received rounded-tl-none',
                 starredIds.has(msg.id) && 'ring-1 ring-accent-yellow'
               )}

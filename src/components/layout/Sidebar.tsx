@@ -21,18 +21,19 @@ const navItems: { id: ActivePanel; icon: React.ElementType; label: string }[] = 
 
 export default function Sidebar({ active, onChange, totalUnread }: SidebarProps) {
   return (
-    <div className="w-16 flex flex-col items-center py-4 bg-bg-light border-r border-bg-lighter gap-1 flex-shrink-0">
+    <div className="w-full h-16 md:h-auto md:w-16 flex flex-row md:flex-col items-center px-2 md:px-0 md:py-4 bg-bg-light border-t md:border-t-0 md:border-r border-bg-lighter gap-1 flex-shrink-0 pb-[env(safe-area-inset-bottom)]">
       {/* Logo */}
-      <div className="w-10 h-10 rounded-full bg-brand flex items-center justify-center mb-4 flex-shrink-0">
+      <div className="hidden md:flex w-10 h-10 rounded-full bg-brand items-center justify-center mb-4 flex-shrink-0">
         <MessageSquare size={20} className="text-white" fill="white" />
       </div>
 
-      <nav className="flex flex-col gap-1 flex-1 w-full items-center">
+      <nav className="flex flex-row md:flex-col justify-around md:justify-start gap-1 flex-1 w-full items-center">
         {navItems.map(({ id, icon: Icon, label }) => (
           <button
             key={id}
             onClick={() => onChange(id)}
             title={label}
+            aria-label={label}
             className={cn(
               'relative w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-150 group',
               active === id
@@ -46,7 +47,7 @@ export default function Sidebar({ active, onChange, totalUnread }: SidebarProps)
                 {totalUnread > 99 ? '99+' : totalUnread}
               </span>
             )}
-            <span className="absolute left-14 bg-bg-lighter text-text text-xs rounded px-2 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-lg">
+            <span className="hidden md:block absolute left-14 bg-bg-lighter text-text text-xs rounded px-2 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-lg">
               {label}
             </span>
           </button>
