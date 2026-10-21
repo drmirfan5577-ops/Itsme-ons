@@ -8,6 +8,7 @@ import CommunitiesScreen from '@/components/features/CommunitiesScreen';
 import SettingsScreen from '@/components/features/SettingsScreen';
 import EmptyState from '@/components/features/EmptyState';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   defaultChats, defaultMessages, defaultStatus, defaultCalls,
 } from '@/constants/data';
@@ -21,13 +22,15 @@ export default function App() {
   const [calls] = useLocalStorage('itsme_calls', defaultCalls);
 
   const [activePanel, setActivePanel] = useState<ActivePanel>('chats');
-  const [activeChat, setActiveChat] = useState<Chat | null>(null);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const activeChat = chats.find((c) => c.id === activeChatId) ?? null;
+  const isMobile = useIsMobile();
   const [darkMode, setDarkMode] = useState(true);
 
   const totalUnread = chats.reduce((sum, c) => sum + c.unread, 0);
 
   const handleSelectChat = useCallback((chat: Chat) => {
-    setActiveChat(chat);
+    setActiveChatId(chat.id);
     // Clear unread
     setChats((prev) =>
       prev.map((c) => (c.id === chat.id ? { ...c, unread: 0 } : c))
@@ -63,7 +66,15 @@ export default function App() {
     // Call handled inside CallsScreen modal
   }, []);
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const handlePanelChange = useCallback((panel: ActivePanel) => {
+    setActivePanel(panel);
+    if (panel !== 'chats') setActiveChatId(null);
+  }, []);
+
+  const showChatList = activePanel === 'chats';
+  // On phones only one pane fits: the list, or the open conversation / other screen
+  const hideListOnMobile = showChatList && !!activeChat;
+  const hideMainOnMobile = showChatList && !activeChat;
 
   const renderRightPanel = () => {
     if (activePanel === 'status') return <StatusScreen status={status} />;
@@ -77,7 +88,7 @@ export default function App() {
         <ChatView
           chat={activeChat}
           messages={messages[activeChat.id] || []}
-          onBack={() => setActiveChat(null)}
+          onBack={() => setActiveChatId(null)}
           onSend={handleSend}
           onCall={handleCall}
           isMobile={isMobile}
@@ -88,22 +99,24 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-full bg-bg overflow-hidden">
-      {/* Sidebar icons */}
-      <Sidebar active={activePanel} onChange={setActivePanel} totalUnread={totalUnread} />
-
-      {/* Left panel: chat list (always visible for chats, otherwise replaced) */}
-      <div
-        className={`w-80 xl:w-96 flex-shrink-0 border-r border-bg-lighter flex flex-col overflow-hidden
-          ${activePanel !== 'chats' ? 'hidden md:flex' : 'flex'}`}
-      >
-        {activePanel === 'chats' ? (
-          <ChatList chats={chats} activeId={activeChat?.id ?? null} onSelect={handleSelectChat} />
-        ) : null}
+    <div className="flex flex-col-reverse md:flex-row h-full bg-bg overflow-hidden">
+      {/* Navigation: bottom bar on phones, icon rail on larger screens */}
+      <div className={hideListOnMobile ? 'hidden md:flex' : 'flex'}>
+        <Sidebar active={activePanel} onChange={handlePanelChange} totalUnread={totalUnread} />
       </div>
 
+      {/* Chat list (chats panel only) */}
+      {showChatList && (
+        <div
+          className={`w-full md:w-80 xl:w-96 flex-1 md:flex-none min-h-0 border-r border-bg-lighter flex-col overflow-hidden
+            ${hideListOnMobile ? 'hidden md:flex' : 'flex'}`}
+        >
+          <ChatList chats={chats} activeId={activeChat?.id ?? null} onSelect={handleSelectChat} />
+        </div>
+      )}
+
       {/* Right / main panel */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+      <div className={`flex-1 flex-col overflow-hidden min-w-0 min-h-0 ${hideMainOnMobile ? 'hidden md:flex' : 'flex'}`}>
         {renderRightPanel()}
       </div>
     </div>
